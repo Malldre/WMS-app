@@ -1,8 +1,8 @@
 import React from 'react';
-import { User, Accessibility, Info, HelpCircle, LogOut } from 'lucide-react-native';
+import { Pressable, Modal as RNModal, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import { Popover, PopoverBackdrop, PopoverContent, PopoverArrow, PopoverCloseButton, VStack, PopoverHeader, Divider, PopoverBody, HStack, PopoverFooter, Text, Box, Icon } from '@gluestack-ui/themed';
-import { Pressable } from 'react-native';
+import { VStack, HStack, Divider, Text, Box, Icon } from '@gluestack-ui/themed';
+import { User, Accessibility, Info, HelpCircle, LogOut, X } from 'lucide-react-native';
 
 type MenuItem = {
   id: string;
@@ -12,11 +12,11 @@ type MenuItem = {
 };
 
 const items: MenuItem[] = [
-  { id: 'profile', label: 'Perfil', icon: User, onPress: () => router.push('/private/profile') },
-  { id: 'a11y', label: 'Acessibilidade', icon: Accessibility, onPress: () => router.push('/private/accessibility') },
-  { id: 'about', label: 'Sobre', icon: Info, onPress: () => router.push('/private/about') },
-  { id: 'help', label: 'Ajuda', icon: HelpCircle, onPress: () => router.push('/private/help') },
-  { id: 'logout', label: 'Sair', icon: LogOut, onPress: () => router.replace('/auth/login') },
+  { id: 'profile', label: 'Perfil',          icon: User,          onPress: () => router.push('/private/profile') },
+  { id: 'a11y',    label: 'Acessibilidade',  icon: Accessibility,  onPress: () => router.push('/private/accessibility') },
+  { id: 'about',   label: 'Sobre',           icon: Info,           onPress: () => router.push('/private/about') },
+  { id: 'help',    label: 'Ajuda',           icon: HelpCircle,     onPress: () => router.push('/private/help') },
+  { id: 'logout',  label: 'Sair',            icon: LogOut,         onPress: () => router.replace('/auth/login') },
 ];
 
 export default function HeaderMenu({
@@ -29,63 +29,75 @@ export default function HeaderMenu({
   employeeName?: string;
 }) {
   return (
-    <Popover
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      placement="bottom left"
-      offset={8}
-      trapFocus
+    <RNModal
+      visible={isOpen}
+      transparent
+      animationType="fade"
+      onRequestClose={() => onOpenChange(false)}
     >
-      <PopoverBackdrop />
-      <PopoverContent
-        maxWidth="$72"
-        borderRadius="$xl"
-        px="$3"
-        py="$2"
-        bg="$background0"
-        $dark-bg="$background950"
-        shadowColor="$black"
-        shadowOffset={{ width: 0, height: 8 }}
-        shadowOpacity={0.2}
-        shadowRadius={16}
-        elevation={10}
-      >
-        <PopoverArrow />
-        <PopoverCloseButton accessibilityLabel="Fechar menu" />
-        <VStack space="sm">
-          <PopoverHeader>
-            <Text size="sm" color="$secondary600">Funcionário:</Text>
-            <Text fontWeight="$semibold">{employeeName ?? '—'}</Text>
-          </PopoverHeader>
+      <Box flex={1}>
+        <Pressable
+          style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+          onPress={() => onOpenChange(false)}
+          accessibilityRole="button"
+          accessibilityLabel="Fechar menu"
+        />
 
-          <Divider />
+        <Box flex={1} justifyContent="center" alignItems="center" px="$4">
+          <Box
+            w="$full"
+            maxWidth="$72"
+            borderRadius="$2xl"
+            px="$3"
+            py="$2"
+            bg="$white"
+            // Sombra iOS
+            shadowColor="$black"
+            shadowOffset={{ width: 0, height: 16 }}
+            shadowOpacity={0.2}
+            shadowRadius={24}
+            // Elevação Android
+            elevation={12}
+          >
+            <Pressable
+              onPress={() => onOpenChange(false)}
+              style={{ alignSelf: 'flex-end', padding: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Fechar"
+            >
+              <Icon as={X} size="sm" />
+            </Pressable>
 
-          <PopoverBody>
-            <VStack space="xs">
-              {items.map(({ id, label, icon: Ico, onPress }, idx) => (
-                <Box key={id}>
-                  <Pressable
-                    onPress={() => {
-                      onOpenChange(false);
-                      onPress();
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel={label}
-                  >
-                    <HStack alignItems="center" space="md" py="$2" px="$1">
-                      <Icon as={Ico} size="xl" color="$typography900" />
-                      <Text size="md">{label}</Text>
-                    </HStack>
-                  </Pressable>
-                  {idx < items.length - 1 && <Divider />}
-                </Box>
-              ))}
+            <VStack space="sm">
+              <Box>
+                <Text size="sm" color="$secondary600">Funcionário:</Text>
+                <Text fontWeight="$semibold">{employeeName ?? '—'}</Text>
+              </Box>
+              <Divider />
+              <VStack space="xs">
+                {items.map(({ id, label, icon: Ico, onPress }, idx) => (
+                  <Box key={id}>
+                    <Pressable
+                      onPress={() => {
+                        onOpenChange(false);
+                        onPress();
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={label}
+                    >
+                      <HStack alignItems="center" space="md" py="$2" px="$1">
+                        <Icon as={Ico} size="xl" color="$typography900" />
+                        <Text size="md">{label}</Text>
+                      </HStack>
+                    </Pressable>
+                    {idx < items.length - 1 && <Divider />}
+                  </Box>
+                ))}
+              </VStack>
             </VStack>
-          </PopoverBody>
-
-          <PopoverFooter />
-        </VStack>
-      </PopoverContent>
-    </Popover>
+          </Box>
+        </Box>
+      </Box>
+    </RNModal>
   );
 }

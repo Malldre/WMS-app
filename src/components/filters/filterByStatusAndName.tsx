@@ -10,10 +10,7 @@ export default function FilterByStatusAndName() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selected, setSelected] = useState<CardTasksStatusEnum[]>([]); // estado externo
 
-  // exemplo: lista filtrada (substitua pela sua query/flatlist)
   const filtered = useMemo(() => {
-    // se selected estiver vazio, retorna tudo
-    // aqui você aplicaria no seu react-query / chamada de API
     return selected;
   }, [selected]);
 
