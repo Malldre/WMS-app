@@ -1,8 +1,12 @@
 import { CardTasksColor, CardTasksTranslate } from '@/src/types/tasks';
 import { Box, Center, HStack, Text, VStack } from '@gluestack-ui/themed';
+import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
+import { Pressable } from 'react-native';
 
 export default function CardTasks({ item }: { item: any }) {
+  const router = useRouter();
+
   return (
     <Box w='$full' mb='$2'>
       <HStack bg='$white' w='$full' h='$20' borderRadius={14} gap='$1'>
@@ -33,7 +37,9 @@ export default function CardTasks({ item }: { item: any }) {
             </HStack>
         </VStack>
         <Center pr='$2' w='$1/2' justifyContent='center' alignItems='flex-end'>
-          <ChevronRight color='#0F0F1A' size='32px' />
+          <Pressable onPress={() => router.push('/private/invoiceDetails')}>
+            <ChevronRight color='#0F0F1A' size={32} />
+          </Pressable>
         </Center>
       </HStack>
     </Box>
