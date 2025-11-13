@@ -9,7 +9,7 @@ const data = [
 
 export default function ClosedTasks() {
   return (
-    <Box gap="$2">
+    <Box gap="$4" py='$2'>
       <FilterByStatusAndName />
       <ActionsheetFlatList
         data={data}

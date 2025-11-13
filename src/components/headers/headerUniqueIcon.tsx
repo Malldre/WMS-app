@@ -1,11 +1,12 @@
 import { Image } from 'react-native';
 import { Box } from '@gluestack-ui/themed';
-
+import { Dimensions } from 'react-native';
+const { height } = Dimensions.get('window');
 
 export default function HeaderUniqueIcon() {
   return (
   <>
-    <Box bg="#0F0F1A" h={180} alignItems="center" justifyContent="center">
+    <Box bg="#0F0F1A" h={height * 0.23} alignItems="center" justifyContent="center">
       <Image
         source={require('@/assets/malldre-icon.png')}
         style={{ width: 160, height: 80, resizeMode: 'contain' }}

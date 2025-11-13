@@ -52,7 +52,7 @@ export function FiltersSheet({ isOpen, onClose, initial, onApply, onClear }: Pro
   useMemo(() => setLocal(initial), [sync]);
 
   return (
-    <Actionsheet isOpen={isOpen} onClose={onClose} snapPoints={[40]}>
+    <Actionsheet isOpen={isOpen} onClose={onClose} snapPoints={[30]}>
       <ActionsheetBackdrop />
       <ActionsheetContent gap='$1.5' p="$4" borderTopLeftRadius="$2xl" borderTopRightRadius="$2xl">
         <ActionsheetDragIndicatorWrapper>
@@ -68,6 +68,7 @@ export function FiltersSheet({ isOpen, onClose, initial, onApply, onClear }: Pro
             <CheckboxGroup
               value={local}
               onChange={(v) => setLocal(v as CardTasksStatusEnum[])}
+              gap='$1'
             >
               {leftChecboxs.map((c) =>
                 <CheckBoxComponent
@@ -82,6 +83,7 @@ export function FiltersSheet({ isOpen, onClose, initial, onApply, onClear }: Pro
             <CheckboxGroup
               value={local}
               onChange={(v) => setLocal(v as CardTasksStatusEnum[])}
+              gap='$1'
             >
               {rightChecboxs.map((c) =>
                 <CheckBoxComponent

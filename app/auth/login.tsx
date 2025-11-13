@@ -10,6 +10,9 @@ import {
 import { useSession } from '@/src/auth/useSession';
 import { EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import HeaderUniqueIcon from '@/src/components/headers/headerUniqueIcon';
+import { Dimensions } from 'react-native';
+const { height } = Dimensions.get('window');
+
 
 const schema = z.object({
   email: z.string({ required_error: 'Informe o e-mail' }).email('E-mail inválido'),
@@ -39,7 +42,7 @@ export default function Login() {
       <Box
         bgColor='$white'
         px="$6"
-        pt="$8"
+        pt={height * 0.06}
         mt='-$3'
         gap="$4"
         borderTopLeftRadius={16}
@@ -47,7 +50,7 @@ export default function Login() {
         >
         <Box gap="$1">
           <Text fontWeight="$bold">E-mail:</Text>
-          <Input w='$72' variant="outline" size="md" borderColor='#141414'>
+          <Input w='$80' variant="outline" size="md" borderColor='#141414'>
             <InputField
               placeholder="nome@email.com"
               keyboardType="email-address"
@@ -63,7 +66,7 @@ export default function Login() {
         <Box gap="$1">
           <Text fontWeight="$bold">Senha:</Text>
           <HStack gap='$1' alignItems='center'>
-            <Input w='$72' variant="outline" size="md" borderColor='#141414'>
+            <Input w='$80' variant="outline" size="md" borderColor='#141414'>
               <InputField
                 placeholder="***************"
                 secureTextEntry={!show}
