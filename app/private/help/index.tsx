@@ -28,12 +28,12 @@ export default function HelpScreen() {
   const router = useRouter();
 
   const openEmail = useCallback(() => {
-    const url = mailto:${SUPPORT_EMAIL}?subject=Suporte%20Malldre;
+    const url = `mailto:${SUPPORT_EMAIL}?subject=Suporte%20Malldre`;
     Linking.canOpenURL(url).then((supported) => supported && Linking.openURL(url));
   }, []);
 
   const openPhone = useCallback(() => {
-    const url = tel:${SUPPORT_PHONE.replace(/\D/g, '')};
+    const url = `tel:${SUPPORT_PHONE.replace(/\D/g, '')}`;
     Linking.canOpenURL(url).then((supported) => supported && Linking.openURL(url));
   }, []);
 
