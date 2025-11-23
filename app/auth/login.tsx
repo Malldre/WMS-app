@@ -10,6 +10,7 @@ import {
 import { useSession } from '@/src/auth/useSession';
 import { EyeIcon, EyeOffIcon } from 'lucide-react-native';
 import HeaderUniqueIcon from '@/src/components/headers/headerUniqueIcon';
+import { useAppToast } from '@/src/hooks/useAppToast';
 import { Dimensions } from 'react-native';
 const { height } = Dimensions.get('window');
 
@@ -24,6 +25,7 @@ type Form = z.infer<typeof schema>;
 export default function Login() {
   const router = useRouter();
   const { login } = useSession();
+  const { showToast } = useAppToast();
   const [show, setShow] = useState(false);
 
   const {
@@ -31,8 +33,19 @@ export default function Login() {
   } = useForm<Form>({ resolver: zodResolver(schema) });
 
   const onSubmit = async (data: Form) => {
-    // await login({ email: data.email.trim(), password: data.password });
-    router.replace('/private');
+    try {
+      await login({
+        email: data.email.trim(),
+        password: data.password
+      });
+      router.replace('/private');
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Erro ao fazer login',
+        description: 'Verifique suas credenciais e tente novamente',
+      });
+    }
   };
 
   return (

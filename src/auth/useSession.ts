@@ -5,52 +5,49 @@ import { LoginDTO, loginService } from '@/src/auth/services/login.service';
 
 type User = { id: string; name: string };
 
-function normalizeCookie(setCookie?: string | string[] | null): string | null {
-  if (!setCookie) return null;
-  const arr = Array.isArray(setCookie) ? setCookie : [setCookie];
-  const pairs = arr.map((c) => (c ?? '').split(';')[0]).filter(Boolean);
-  return pairs.length ? pairs.join('; ') : null;
-}
-
 export function useSession() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const token  = await SecureStore.getItemAsync('token');
-        const cookie = await SecureStore.getItemAsync('cookie');
-        if (!token && !cookie) { setLoading(false); return; }
-
-        const { data } = await api.get<User>('/me');
-        setUser(data);
-      } catch {
-        await SecureStore.deleteItemAsync('token');
-        await SecureStore.deleteItemAsync('cookie');
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    })();
+  const clearSession = useCallback(async () => {
+    await SecureStore.deleteItemAsync('token');
+    setUser(null);
   }, []);
 
+  const loadUser = useCallback(async () => {
+    try {
+      const token = await SecureStore.getItemAsync('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      const { data } = await api.get<User>('/me');
+      setUser(data);
+    } catch {
+      await clearSession();
+    } finally {
+      setLoading(false);
+    }
+  }, [clearSession]);
+
+  useEffect(() => {
+    loadUser();
+  }, [loadUser]);
+
   const login = useCallback(async (payload: LoginDTO) => {
-    const { data, setCookieHeader } = await loginService(payload);
+    const response = await loginService(payload);
 
-    if (data.token) await SecureStore.setItemAsync('token', data.token);
+    if (!response.access_token) {
+      throw new Error('Token de acesso não retornado');
+    }
 
-    const cookie = normalizeCookie(setCookieHeader);
-    if (cookie) await SecureStore.setItemAsync('cookie', cookie);
-
-    setUser(data.user);
+    setUser(response.user);
   }, []);
 
   const logout = useCallback(async () => {
-    await SecureStore.deleteItemAsync('token');
-    await SecureStore.deleteItemAsync('cookie');
-    setUser(null);
-  }, []);
+    await clearSession();
+  }, [clearSession]);
 
   return { user, loading, login, logout, isAuthenticated: !!user };
 }

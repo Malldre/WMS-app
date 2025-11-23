@@ -1,12 +1,15 @@
-import { api } from '@/src/core/api';
+import { apiService } from '@/src/services/api.service';
+import * as SecureStore from 'expo-secure-store';
 
 export type LoginDTO = { email: string; password: string };
-export type LoginResponse = { token?: string; user: { id: string; name: string } };
+export type LoginResponse = { access_token?: string; user: { id: string; name: string } };
 
-export async function loginService(payload: LoginDTO): Promise<{
-  data: LoginResponse;
-  setCookieHeader?: string | string[];
-}> {
-  const res = await api.post<LoginResponse>('/auth/login', payload);
-  return { data: res.data, setCookieHeader: res.headers['set-cookie'] };
+export async function loginService(payload: LoginDTO): Promise<LoginResponse> {
+  const res = await apiService.post<LoginResponse>('/auth/login', payload);
+
+  if (res.data.access_token) {
+    await SecureStore.setItemAsync('token', res.data.access_token);
+  }
+
+  return res.data;
 }
