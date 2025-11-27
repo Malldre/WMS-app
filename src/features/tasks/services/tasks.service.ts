@@ -1,60 +1,47 @@
 import { apiService } from '@/src/services/api.service';
-import { CardTasksStatusEnum } from '@/src/types/tasks';
+import { Task, TasksFilters } from '@/src/types/tasks';
 
-export type Task = {
-  id: number;
-  status: CardTasksStatusEnum;
-  nota: string;
-  descricao: string;
-  especi: string;
-  dataEntrada?: string;
-  horaEntrada?: string;
-  expedidaPor?: string;
-  prazoConclusao?: string;
+export const tasksService = {
+  async getOpenTasks(filters?: TasksFilters): Promise<Task[]> {
+    const { data } = await apiService.get<Task[]>('/tasks/open', {
+      params: {
+        status: filters?.status?.join(','),
+        search: filters?.search,
+      },
+    });
+    return data;
+  },
+
+  async getMyTasks(filters?: TasksFilters): Promise<Task[]> {
+    const { data } = await apiService.get<Task[]>('/tasks/my-tasks', {
+      params: {
+        status: filters?.status?.join(','),
+        search: filters?.search,
+      },
+    });
+    return data;
+  },
+
+  async getClosedTasks(filters?: TasksFilters): Promise<Task[]> {
+    const { data } = await apiService.get<Task[]>('/tasks/closed', {
+      params: {
+        search: filters?.search,
+      },
+    });
+    return data;
+  },
+
+  async getTaskById(id: number): Promise<Task> {
+    const { data } = await apiService.get<Task>(`/tasks/${id}`);
+    return data;
+  },
+
+  async updateTask(id: number, updates: Partial<Task>): Promise<Task> {
+    const { data } = await apiService.patch<Task>(`/tasks/${id}`, updates);
+    return data;
+  },
+
+  async linkProductToTask(taskId: number, productCode: string): Promise<void> {
+    await apiService.post(`/tasks/${taskId}/link`, { productCode });
+  },
 };
-
-export type GetTasksParams = {
-  status?: CardTasksStatusEnum[];
-  search?: string;
-  type?: 'open' | 'mine' | 'closed';
-};
-
-export type GetTasksResponse = {
-  tasks: Task[];
-  total: number;
-};
-
-export async function getTasks(params?: GetTasksParams): Promise<GetTasksResponse> {
-  const { data } = await apiService.get<GetTasksResponse>('/tasks', {
-    params: {
-      status: params?.status?.join(','),
-      search: params?.search,
-      type: params?.type,
-    },
-  });
-
-  return data;
-}
-
-export async function getTaskById(id: number): Promise<Task> {
-  const { data } = await apiService.get<Task>(`/tasks/${id}`);
-  return data;
-}
-
-export async function createTask(task: Omit<Task, 'id'>): Promise<Task> {
-  const { data } = await apiService.post<Task>('/tasks', task);
-  return data;
-}
-
-export async function updateTask(id: number, task: Partial<Task>): Promise<Task> {
-  const { data } = await apiService.put<Task>(`/tasks/${id}`, task);
-  return data;
-}
-
-export async function deleteTask(id: number): Promise<void> {
-  await apiService.delete(`/tasks/${id}`);
-}
-
-export async function linkTask(taskId: number, productCode: string): Promise<void> {
-  await apiService.post(`/tasks/${taskId}/link`, { productCode });
-}

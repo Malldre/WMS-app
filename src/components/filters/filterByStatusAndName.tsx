@@ -1,53 +1,85 @@
-import { FiltersSheet } from '@/src/features/tasks/components/FiltersSheet';
-import { CardTasksStatusEnum } from '@/src/types/tasks';
-import { HStack, Input, InputField, InputIcon, InputSlot } from '@gluestack-ui/themed';
-import { Funnel, Search, SearchIcon } from 'lucide-react-native';
-import { useState, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { Pressable } from 'react-native';
+import { HStack, Input, InputField, InputSlot } from '@gluestack-ui/themed';
+import { Funnel, Search } from 'lucide-react-native';
+import { FiltersSheet } from '@/src/features/tasks/components/FiltersSheet';
+import { TaskTypeEnum, TasksFilters } from '@/src/types/tasks';
 
-export default function FilterByStatusAndName() {
+type FilterByStatusAndNameProps = {
+  isEnded?: boolean;
+  onFilterChange?: (filters: TasksFilters) => void;
+};
 
+export default function FilterByStatusAndName({
+  isEnded = false,
+  onFilterChange,
+}: FilterByStatusAndNameProps) {
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [selected, setSelected] = useState<CardTasksStatusEnum[]>([]); // estado externo
+  const [selectedStatus, setSelectedStatus] = useState<TaskTypeEnum[]>([]);
+  const [searchText, setSearchText] = useState('');
 
-  const filtered = useMemo(() => {
-    return selected;
-  }, [selected]);
+  const handleApplyFilters = useCallback((status: TaskTypeEnum[]) => {
+    setSelectedStatus(status);
+    onFilterChange?.({
+      status: status.length > 0 ? status : undefined,
+      search: searchText || undefined,
+    });
+  }, [searchText, onFilterChange]);
+
+  const handleClearFilters = useCallback(() => {
+    setSelectedStatus([]);
+    onFilterChange?.({
+      search: searchText || undefined,
+    });
+  }, [searchText, onFilterChange]);
+
+  const handleSearchChange = useCallback((text: string) => {
+    setSearchText(text);
+
+    const timer = setTimeout(() => {
+      onFilterChange?.({
+        status: selectedStatus.length > 0 ? selectedStatus : undefined,
+        search: text || undefined,
+      });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [selectedStatus, onFilterChange]);
 
   return (
-    <HStack w='$full' alignItems='center' justifyContent='space-between'>
+    <HStack w="$full" alignItems="center" justifyContent="space-between">
       <Input
-        w='$64'
+        w={isEnded ? '$full' : '$64'}
         variant="rounded"
         size="md"
-        bg='$white'
+        bg="$white"
         borderWidth={1}
-        borderColor='$primary900'
+        borderColor="$primary900"
       >
-        <InputField color='$primary900' placeholder="Search..." />
+        <InputField
+          color="$primary900"
+          placeholder="Buscar..."
+          value={searchText}
+          onChangeText={handleSearchChange}
+        />
         <InputSlot pr="$3">
-          <Search
-            size='18px'
-            color='#0F0F1A'
-            strokeWidth='3px'
-          />
+          <Search size="18px" color="#0F0F1A" strokeWidth="3px" />
         </InputSlot>
       </Input>
 
-      <Pressable onPress={() => setFiltersOpen(true)}>
-        <Funnel
-          size='32px'
-          color='#0F0F1A'
-        />
-      </Pressable>
+      {!isEnded && (
+        <Pressable onPress={() => setFiltersOpen(true)}>
+          <Funnel size="32px" color="#0F0F1A" />
+        </Pressable>
+      )}
 
       <FiltersSheet
         isOpen={filtersOpen}
         onClose={() => setFiltersOpen(false)}
-        initial={selected}
-        onApply={(next) => setSelected(next)}
-        onClear={() => setSelected([])}
+        initial={selectedStatus}
+        onApply={handleApplyFilters}
+        onClear={handleClearFilters}
       />
     </HStack>
-  )
+  );
 }

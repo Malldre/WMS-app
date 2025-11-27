@@ -1,43 +1,73 @@
-import { CardTasksColor, CardTasksTranslate } from '@/src/types/tasks';
+import { Task, TaskStatusColor, TaskTypeTranslate } from '@/src/types/tasks';
 import { Box, Center, HStack, Text, VStack } from '@gluestack-ui/themed';
 import { useRouter } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { Pressable } from 'react-native';
+import { Dimensions } from 'react-native';
+const { height } = Dimensions.get('window');
 
-export default function CardTasks({ item }: { item: any }) {
+interface CardTasksProps {
+  item: Task;
+  onPress?: () => void;
+}
+
+export default function CardTasks({ item, onPress }: CardTasksProps) {
   const router = useRouter();
+
+  if (!item) {
+    return null;
+  }
+
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else {
+      router.push({
+        pathname: '/private/invoiceDetails',
+        params: {
+          taskId: item.id,
+          taskData: JSON.stringify(item),
+        },
+      });
+    }
+  };
 
   return (
     <Box w='$full' mb='$2'>
-      <HStack bg='$white' w='$full' h='$20' borderRadius={14} gap='$1'>
-        <VStack w='$1/2' h='$full'>
+      <HStack bg='$white' w='$full' h={height * 0.12} borderRadius={14}>
+        <VStack w='$1/2' h='$full' justifyContent='flex-start'>
             <Box
               alignItems='center'
               justifyContent='center'
-              bg={CardTasksColor[item.status]}
-              w='$24'
+              bg={TaskStatusColor[item.status]}
+              w='$32'
+              h='$8'
               borderTopLeftRadius={14}
               borderBottomRightRadius={14}
               >
                 <Text size='sm' color='$white' fontWeight='$bold' shadowColor='$coolGray500'>
-                  {CardTasksTranslate[item.status]}
+                  {TaskTypeTranslate[item.taskType]}
                 </Text>
             </Box>
-            <HStack pl='$2' gap='$1'>
-              <Text size='sm' fontWeight='$bold'>Nota: </Text>
-              <Text size='sm'>{ item.nota }</Text>
-            </HStack>
-            <HStack pl='$2' gap='$1' >
-              <Text size='sm' fontWeight='$bold'>Descrição: </Text>
-              <Text size='sm' numberOfLines={1} ellipsizeMode="tail">{ item.descricao }</Text>
-            </HStack>
-            <HStack pl='$2' gap='$1'>
-              <Text size='sm' fontWeight='$bold'>Especificação do item: </Text>
-              <Text size='sm'>{ item.especi }</Text>
-            </HStack>
+            <VStack pl='$2' pt='$1' gap='$0.5' flex={1} justifyContent='center'>
+              <HStack gap='$1' alignItems='center'>
+                <Text size='sm' fontWeight='$bold'>ID: </Text>
+                <Text size='sm'>{item.title.split('-')[1]}</Text>
+              </HStack>
+              <HStack gap='$1' alignItems='center'>
+                <Text size='sm' fontWeight='$bold'>Descrição: </Text>
+                <Text size='sm' numberOfLines={1} ellipsizeMode="tail" flex={1}>{item.description}</Text>
+              </HStack>
+              {item.itemSpecification && (
+                <HStack gap='$1' alignItems='center'>
+                  <Text size='sm' fontWeight='$bold'>Especificação: </Text>
+                  <Text size='sm' numberOfLines={1} ellipsizeMode="tail" flex={1}>{item.itemSpecification}</Text>
+                </HStack>
+              )}
+            </VStack>
         </VStack>
         <Center pr='$2' w='$1/2' justifyContent='center' alignItems='flex-end'>
-          <Pressable onPress={() => router.push('/private/invoiceDetails')}>
+          <Pressable onPress={handlePress}>
             <ChevronRight color='#0F0F1A' size={32} />
           </Pressable>
         </Center>

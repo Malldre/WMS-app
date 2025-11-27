@@ -1,5 +1,4 @@
-import { CheckBoxComponent } from '@/src/components/checkbox';
-import { CardTasksStatusEnum } from '@/src/types/tasks';
+import { useState, useMemo } from 'react';
 import {
   Actionsheet,
   ActionsheetBackdrop,
@@ -7,54 +6,73 @@ import {
   ActionsheetDragIndicator,
   ActionsheetDragIndicatorWrapper,
   Button,
-  Checkbox,
   CheckboxGroup,
-  CheckboxIcon,
-  CheckboxIndicator,
-  CheckIcon,
   HStack,
   Text,
   VStack,
 } from '@gluestack-ui/themed';
-import { useState, useMemo } from 'react';
+import { CheckBoxComponent } from '@/src/components/checkbox';
+import {TaskTypeEnum, TaskTypeTranslate } from '@/src/types/tasks';
 
-type Props = {
+type FiltersSheetProps = {
   isOpen: boolean;
   onClose: () => void;
-  initial: CardTasksStatusEnum[];
-  onApply: (next: CardTasksStatusEnum[]) => void;
+  initial: TaskTypeEnum[];
+  onApply: (selected: TaskTypeEnum[]) => void;
   onClear: () => void;
 };
 
 const ALL = [
-  CardTasksStatusEnum.conferencia,
-  CardTasksStatusEnum.armazenamento,
-  CardTasksStatusEnum.estoque,
-  CardTasksStatusEnum.separacao,
-  CardTasksStatusEnum.desmobilizacao,
+  TaskTypeEnum.CONFERENCE,
+  TaskTypeEnum.DEMOBILIZATION,
+  TaskTypeEnum.STORAGE,
+  TaskTypeEnum.SEPARATION,
+  TaskTypeEnum.STOCK,
 ];
 
-const leftChecboxs: Array<{ value: string, label: string }> = [
-  { value: CardTasksStatusEnum.conferencia, label: 'Conferência' },
-  { value: CardTasksStatusEnum.armazenamento, label: 'Armazenamento' },
-  { value: CardTasksStatusEnum.desmobilizacao, label: 'Desmobilização' }
-]
+const STATUS_OPTIONS = [
+  { value: TaskTypeEnum.CONFERENCE, label: TaskTypeTranslate[TaskTypeEnum.CONFERENCE] },
+  { value: TaskTypeEnum.DEMOBILIZATION, label: TaskTypeTranslate[TaskTypeEnum.DEMOBILIZATION] },
+  { value: TaskTypeEnum.STORAGE, label: TaskTypeTranslate[TaskTypeEnum.STORAGE] },
+];
 
 const rightChecboxs: Array<{ value: string, label: string }> = [
-  { value: CardTasksStatusEnum.separacao, label: 'Separação' },
-  { value: CardTasksStatusEnum.desmobilizacao, label: 'Desmobilização' },
+  { value: TaskTypeEnum.SEPARATION, label: TaskTypeTranslate[TaskTypeEnum.SEPARATION] },
+  { value: TaskTypeEnum.DEMOBILIZATION, label: TaskTypeTranslate[TaskTypeEnum.DEMOBILIZATION] },
 ]
 
-export function FiltersSheet({ isOpen, onClose, initial, onApply, onClear }: Props) {
-  const [local, setLocal] = useState<CardTasksStatusEnum[]>(initial);
+export function FiltersSheet({
+  isOpen,
+  onClose,
+  initial,
+  onApply,
+  onClear
+}: FiltersSheetProps) {
+  const [localSelection, setLocalSelection] = useState<TaskTypeEnum[]>(initial);
 
-  const sync = useMemo(() => initial.join('|'), [initial]);
-  useMemo(() => setLocal(initial), [sync]);
+  const initialSync = useMemo(() => initial.join('|'), [initial]);
+  useMemo(() => setLocalSelection(initial), [initialSync]);
+
+  const handleApply = () => {
+    onApply(localSelection);
+    onClose();
+  };
+
+  const handleClear = () => {
+    setLocalSelection([]);
+    onClear();
+    onClose();
+  };
 
   return (
     <Actionsheet isOpen={isOpen} onClose={onClose} snapPoints={[30]}>
       <ActionsheetBackdrop />
-      <ActionsheetContent gap='$1.5' p="$4" borderTopLeftRadius="$2xl" borderTopRightRadius="$2xl">
+      <ActionsheetContent
+        gap="$1.5"
+        p="$4"
+        borderTopLeftRadius="$2xl"
+        borderTopRightRadius="$2xl"
+      >
         <ActionsheetDragIndicatorWrapper>
           <ActionsheetDragIndicator />
         </ActionsheetDragIndicatorWrapper>
@@ -66,23 +84,23 @@ export function FiltersSheet({ isOpen, onClose, initial, onApply, onClear }: Pro
         <HStack space="md" mb="$4">
           <VStack flex={1} space="sm">
             <CheckboxGroup
-              value={local}
-              onChange={(v) => setLocal(v as CardTasksStatusEnum[])}
-              gap='$1'
+            value={localSelection}
+            onChange={(values) => setLocalSelection(values as TaskTypeEnum[])}
             >
-              {leftChecboxs.map((c) =>
+            {STATUS_OPTIONS.map((option) => (
                 <CheckBoxComponent
-                  value={c.value}
-                  label={c.label}
+                key={option.value}
+                value={option.value}
+                label={option.label}
                 />
-              )}
+            ))}
             </CheckboxGroup>
           </VStack>
 
           <VStack flex={1} space="sm">
             <CheckboxGroup
-              value={local}
-              onChange={(v) => setLocal(v as CardTasksStatusEnum[])}
+              value={localSelection}
+              onChange={(values) => setLocalSelection(values as TaskTypeEnum[])}
               gap='$1'
             >
               {rightChecboxs.map((c) =>
@@ -99,25 +117,22 @@ export function FiltersSheet({ isOpen, onClose, initial, onApply, onClear }: Pro
           <Button
             flex={1}
             bg="$primary900"
-            onPress={() => {
-              onApply(local);
-              onClose();
-            }}
+            onPress={handleApply}
           >
-            <Text color="$white" fontWeight="$bold">Aplicar filtros</Text>
+            <Text color="$white" fontWeight="$bold">
+              Aplicar filtros
+            </Text>
           </Button>
 
           <Button
             flex={1}
             variant="outline"
             borderColor="$outline300"
-            onPress={() => {
-              setLocal([]);
-              onClear();
-              onClose();
-            }}
+            onPress={handleClear}
           >
-            <Text fontWeight="$bold">Limpar filtros</Text>
+            <Text fontWeight="$bold">
+              Limpar filtros
+            </Text>
           </Button>
         </HStack>
       </ActionsheetContent>

@@ -22,14 +22,12 @@ export function useSession() {
         return;
       }
 
-      const { data } = await api.get<User>('/me');
-      setUser(data);
-    } catch {
-      await clearSession();
-    } finally {
+      setLoading(false);
+    } catch (error) {
+      console.error('Erro ao carregar sessão:', error);
       setLoading(false);
     }
-  }, [clearSession]);
+  }, []);
 
   useEffect(() => {
     loadUser();
@@ -43,9 +41,7 @@ export function useSession() {
     }
 
     setUser(response.user);
-  }, []);
-
-  const logout = useCallback(async () => {
+  }, []);  const logout = useCallback(async () => {
     await clearSession();
   }, [clearSession]);
 

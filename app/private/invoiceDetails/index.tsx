@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   Box,
   HStack,
@@ -8,25 +8,66 @@ import {
   Text,
   Icon,
   Pressable,
-  Divider,
-  Button,
 } from '@gluestack-ui/themed';
-import { ArrowLeft, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
+import { useQuery } from '@tanstack/react-query';
 import HeaderWithSettings from '@/src/components/headers/headerWithSettings';
-
-type LinkedItem = { id: string; label: string; subtitle?: string };
-
-const MOCK_LINKS: LinkedItem[] = [
-  { id: '1', label: '1585223 - Martelo - 65489' },
-  { id: '2', label: '6698745 - Parafuso - 66987' },
-  { id: '3', label: '1988775 - Chave de fenda - 69875' },
-  { id: '4', label: '3225566 - Furadeira - 33255' },
-  { id: '5', label: '6998786 - Broca - 699875' },
-];
+import AccordionList, { AccordionItem } from '@/src/components/accordion/accordionList';
+import { Task, TaskStatusColor, TaskTypeTranslate } from '@/src/types/tasks';
+import { invoiceService } from '@/src/services/invoice.service';
 
 export default function InvoiceDetails() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const [productOpen, setProductOpen] = useState(true);
+
+  const taskData: Task | null = useMemo(() => {
+    if (params.taskData && typeof params.taskData === 'string') {
+      try {
+        console.log(JSON.parse(params.taskData));
+        return JSON.parse(params.taskData) as Task;
+      } catch (error) {
+        console.error('Erro ao fazer parse dos dados da tarefa:', error);
+        return null;
+      }
+    }
+    return null;
+  }, [params.taskData]);
+
+  const { data: invoiceItems = [], isLoading } = useQuery({
+    queryKey: ['invoice-items', taskData?.invoiceId],
+    queryFn: () => invoiceService.getInvoiceItems(taskData!.invoiceId!),
+    enabled: !!taskData?.invoiceId,
+  });
+  console.log('Itens da nota fiscal:', invoiceItems);
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('pt-BR');
+    } catch {
+      return dateString;
+    }
+  };
+
+  const formatTime = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleTimeString('pt-BR');
+    } catch {
+      return dateString;
+    }
+  };
+
+  const accordionItems: AccordionItem[] = invoiceItems
+    .filter((item) => item && item.materialId)
+    .map((item) => ({
+      id: item.materialId.toString(),
+      title: `${item.materialId} - ${item.materialName || 'N/A'}`,
+      subtitle: item.materialDescription,
+      textContent: `Quantidade: ${item.quantity || '0'} | Preço unitário: R$ ${parseFloat(item.unitValue || '0').toFixed(2)} | Total: R$ ${parseFloat(item.totalValue || '0').toFixed(2)}`,
+    }));
 
   return (
     <Box flex={1} bg="$background950">
@@ -45,33 +86,33 @@ export default function InvoiceDetails() {
             <Icon as={ArrowLeft} size="xl" />
           </Pressable>
 
-          <Text size="lg" fontWeight="$bold" color="#0F0F1A">
-            Nota: <Text as="span" fontWeight="$bold">1234567</Text>
+          <Text fontWeight="$bold" color="#0F0F1A">
+            {taskData?.title.split(' - ')[1] || 'N/A'}
           </Text>
 
           <Box width={28} />
         </HStack>
       </Box>
-      <Box
-        flex={1}
-        p="$4"
-      >
+
+      <Box flex={1} p="$4">
         <ScrollView showsVerticalScrollIndicator={false}>
           <VStack space="md" mt="$3" px="$2" pb="$8">
             <Box alignItems="flex-start">
               <Box
-                bg="$success300"
+                bg={taskData ? TaskStatusColor[taskData.status] : "$success300"}
                 px="$3"
                 py="$1"
                 borderRadius="$lg"
                 alignSelf="flex-start"
               >
-                <Text color="$success900" fontWeight="$semibold">Conferência</Text>
+                <Text color="$white" fontWeight="$semibold">
+                  {taskData ? TaskTypeTranslate[taskData.taskType] : 'Conferência'}
+                </Text>
               </Box>
             </Box>
 
             <Box
-              bg="$typography900"
+              bg="#0F0F1A"
               borderRadius="$lg"
               px="$4"
               py="$3"
@@ -81,60 +122,44 @@ export default function InvoiceDetails() {
               shadowRadius={12}
               elevation={8}
             >
-              <VStack space="$2">
-                <Text color="$white">Data de entrada: <Text as="span" color="$white" fontWeight="$semibold">11/02/2025</Text></Text>
-                <Text color="$white">Hora de entrada: <Text as="span" color="$white" fontWeight="$semibold">12:55:42</Text></Text>
-                <Text color="$white">Nota expedida por: <Text as="span" color="$white" fontWeight="$semibold">Fulano Ciclano da Silva</Text></Text>
-                <Text color="$white">Prazo de conclusão até: <Text as="span" color="$white" fontWeight="$semibold">10/10/2025</Text></Text>
+              <VStack gap="$2">
+                <Text color="$white">
+                  Data de entrada:{' '}
+                  <Text color="$white" fontWeight="$semibold">
+                    {formatDate(taskData?.createdAt)}
+                  </Text>
+                </Text>
+                <Text color="$white">
+                  Hora de entrada:{' '}
+                  <Text color="$white" fontWeight="$semibold">
+                    {formatTime(taskData?.createdAt)}
+                  </Text>
+                </Text>
+                <Text color="$white">
+                  Nota expedida por:{' '}
+                  <Text color="$white" fontWeight="$semibold">
+                    {taskData?.issuedBy || 'N/A'}
+                  </Text>
+                </Text>
+                <Text color="$white">
+                  Prazo de conclusão até:{' '}
+                  <Text color="$white" fontWeight="$semibold">
+                    {formatDate(taskData?.dueDate || undefined)}
+                  </Text>
+                </Text>
+                {taskData?.description && (
+                  <Text color="$white">
+                    Descrição:{' '}
+                    <Text color="$white" fontWeight="$semibold">
+                      {taskData.description}
+                    </Text>
+                  </Text>
+                )}
               </VStack>
             </Box>
 
-            <Box bg="$white" borderRadius="$lg" overflow="hidden" borderWidth={1} borderColor="$coolGray200">
-              <Pressable onPress={() => setProductOpen((s) => !s)} accessibilityLabel="Alternar produto">
-                <HStack alignItems="center" justifyContent="space-between" px="$4" py="$3">
-                  <Text fontWeight="$semibold">Código do produto: <Text as="span" fontWeight="$bold">100500110</Text></Text>
-                  <Icon as={ChevronRight} size="sm" style={{ transform: [{ rotate: productOpen ? '90deg' : '0deg' }] }} />
-                </HStack>
-              </Pressable>
 
-              {productOpen && (
-                <Box px="$4" pb="$4">
-                  <Divider />
-                  <VStack space="$3" pt="$3">
-                    <Text fontWeight="$semibold">Especificação do item: <Text as="span" fontWeight="$normal">Bota CAT-23456</Text></Text>
-
-                    <Text>
-                      <Text fontWeight="$semibold">Descrição: </Text>
-                      Bota legal de equipamento de segurança e bla bla bla.
-                    </Text>
-
-                    <Box alignItems="center" mt="$2">
-                      <Button bgColor="#0F0F1A" px="$5" py="$3" borderRadius="$md" onPress={() => { /* vincular tarefa */ }}>
-                        <Text color="$white" fontWeight="$bold">VINCULAR TAREFA</Text>
-                      </Button>
-                    </Box>
-                  </VStack>
-                </Box>
-              )}
-            </Box>
-
-            <Box>
-              {MOCK_LINKS.map((it) => (
-                <Pressable
-                  key={it.id}
-                  onPress={() => { /* abrir item */ }}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Abrir ${it.label}`}
-                >
-                  <HStack alignItems="center" justifyContent="space-between" px="$3" py="$3" bg={it.id === '1' ? '$coolGray100' : '$white'}>
-                    <Text>{it.label}</Text>
-                    <Icon as={ChevronRight} size="sm" />
-                  </HStack>
-
-                  <Divider />
-                </Pressable>
-              ))}
-            </Box>
+            <AccordionList items={accordionItems} activeTextColor="#ffffff" singleOpen />
           </VStack>
         </ScrollView>
       </Box>

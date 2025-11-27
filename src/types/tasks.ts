@@ -1,23 +1,63 @@
-export enum CardTasksStatusEnum {
-  conferencia = 'Conferência',
-  armazenamento = 'Armazenamento',
-  estoque = 'Estoque',
-  separacao = 'Separação',
-  desmobilizacao = 'Desmobilização'
+export enum TaskTypeEnum {
+  CONFERENCE = 'CONFERENCE',
+  DEMOBILIZATION = 'DEMOBILIZATION',
+  STORAGE = 'STORAGE',
+  SEPARATION = 'SEPARATION',
+  STOCK = 'STOCK',
+  INVENTORY = 'INVENTORY',
+  PENDING = 'PENDING',
+  PICKING = 'PICKING',
 }
 
-export const CardTasksColor: Record<any, string> = {
-  [CardTasksStatusEnum.conferencia]: '$green500',
-  [CardTasksStatusEnum.armazenamento]: '$blue500',
-  [CardTasksStatusEnum.estoque]: '$orange500',
-  [CardTasksStatusEnum.separacao]: '$yellow500',
-  [CardTasksStatusEnum.desmobilizacao]: '$red500',
+export enum TaskStatusEnum {
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  PENDING = 'PENDING',
+}
+
+export type Task = {
+  id: number;
+  uuid: string;
+  title: string;
+  description: string;
+  taskType: TaskTypeEnum;
+  status: TaskStatusEnum;
+  invoiceId: number;
+  materialId: number | null;
+  itemSpecification: string;
+  assignedUserId: number;
+  issuedBy: string;
+  entryDate: string | null;
+  dueDate: string | null;
+  completedAt: string | null;
+  createdAt: string;
 };
 
-export const CardTasksTranslate: Record<any, string> = {
-  [CardTasksStatusEnum.conferencia]: 'Conferência',
-  [CardTasksStatusEnum.armazenamento]: 'Armazenamento',
-  [CardTasksStatusEnum.estoque]: 'Estoque',
-  [CardTasksStatusEnum.separacao]: 'Separação',
-  [CardTasksStatusEnum.desmobilizacao]: 'Desmobilização',
+export type TasksFilters = {
+  search?: string;
+  status?: TaskStatusEnum[];
+};
+
+export const TaskStatusColor: Record<TaskStatusEnum, string> = {
+  [TaskStatusEnum.IN_PROGRESS]: '$yellow500',
+  [TaskStatusEnum.COMPLETED]: '$green500',
+  [TaskStatusEnum.PENDING]: '$orange500',
+
+};
+
+export const TaskTypeTranslate: Record<TaskTypeEnum, string> = {
+  [TaskTypeEnum.CONFERENCE]: 'Conferência',
+  [TaskTypeEnum.DEMOBILIZATION]: 'Desmobilização',
+  [TaskTypeEnum.STORAGE]: 'Estoque',
+  [TaskTypeEnum.SEPARATION]: 'Separação',
+  [TaskTypeEnum.STOCK]: 'Estoque',
+  [TaskStatusEnum.PENDING]: 'Pendente',
+  [TaskTypeEnum.INVENTORY]: 'Inventário',
+  [TaskTypeEnum.PICKING]: 'Escolhendo',
+};
+
+export const TaskStatusTranslate: Record<TaskStatusEnum, string> = {
+  [TaskStatusEnum.IN_PROGRESS]: 'Em Progresso',
+  [TaskStatusEnum.COMPLETED]: 'Concluída',
+  [TaskStatusEnum.PENDING]: 'Pendente',
 };

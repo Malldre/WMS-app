@@ -16,7 +16,7 @@ const { height } = Dimensions.get('window');
 
 
 const schema = z.object({
-  email: z.string({ required_error: 'Informe o e-mail' }).email('E-mail inválido'),
+  email: z.string({ required_error: 'Informe o e-mail' }),
   password: z.string({ required_error: 'Informe a senha' }).min(4, 'Senha muito curta'),
 });
 
@@ -34,21 +34,28 @@ export default function Login() {
 
   const onSubmit = async (data: Form) => {
     try {
+      console.log('🚀 Submetendo login...');
+
       await login({
         email: data.email.trim(),
         password: data.password
       });
+
+      console.log('⏳ Aguardando persistência...');
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      console.log('🔄 Navegando...');
       router.replace('/private');
     } catch (error) {
+      console.error('❌ Erro no login:', error);
       showToast({
         type: 'error',
         title: 'Erro ao fazer login',
         description: 'Verifique suas credenciais e tente novamente',
       });
     }
-  };
-
-  return (
+  };  return (
     <Box flex={1} bg="$white">
       <HeaderUniqueIcon />
 

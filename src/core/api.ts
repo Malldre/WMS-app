@@ -7,14 +7,35 @@ export const api = axios.create({
   timeout: 15_000,
 });
 
-api.interceptors.request.use(async (config) => {
-  const token  = await SecureStore.getItemAsync('token');
-  const cookie = await SecureStore.getItemAsync('cookie');
+api.interceptors.request.use(
+  async (config) => {
+    try {
+      const token = await SecureStore.getItemAsync('token');
 
-  config.headers = config.headers ?? {};
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('✅ Token adicionado ao header');
+      } else {
+        console.warn('⚠️ Nenhum token encontrado para:', config.url);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao buscar token:', error);
+    }
 
-  if (token)  config.headers.Authorization = `Bearer ${token}`;
-  if (cookie) config.headers.Cookie        = cookie;
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
-  return config;
-});
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      console.warn('🚫 Token inválido ou expirado');
+      await SecureStore.deleteItemAsync('token');
+    }
+    return Promise.reject(error);
+  }
+);
