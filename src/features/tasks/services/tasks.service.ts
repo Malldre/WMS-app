@@ -44,4 +44,9 @@ export const tasksService = {
   async linkProductToTask(taskId: number, productCode: string): Promise<void> {
     await apiService.post(`/tasks/${taskId}/link`, { productCode });
   },
+
+  async assignToUser(uuid: string, userId: number): Promise<Task> {
+    const { data } = await apiService.put<Task>(`/tasks/${uuid}/assign`, { userId });
+    return data;
+  },
 };

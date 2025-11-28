@@ -15,11 +15,13 @@ import HeaderWithSettings from '@/src/components/headers/headerWithSettings';
 import AccordionList, { AccordionItem } from '@/src/components/accordion/accordionList';
 import { Task, TaskStatusColor, TaskTypeTranslate } from '@/src/types/tasks';
 import { invoiceService } from '@/src/services/invoice.service';
+import { useUser } from '@/src/auth/useUser';
 
 export default function InvoiceDetails() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [productOpen, setProductOpen] = useState(true);
+  const { user } = useUser();
 
   const taskData: Task | null = useMemo(() => {
     if (params.taskData && typeof params.taskData === 'string') {
@@ -67,6 +69,7 @@ export default function InvoiceDetails() {
       title: `${item.materialId} - ${item.materialName || 'N/A'}`,
       subtitle: item.materialDescription,
       textContent: `Quantidade: ${item.quantity || '0'} | Preço unitário: R$ ${parseFloat(item.unitValue || '0').toFixed(2)} | Total: R$ ${parseFloat(item.totalValue || '0').toFixed(2)}`,
+      uuid: item.uuid,
     }));
 
   return (
@@ -159,7 +162,12 @@ export default function InvoiceDetails() {
             </Box>
 
 
-            <AccordionList items={accordionItems} activeTextColor="#ffffff" singleOpen />
+            <AccordionList
+              items={accordionItems}
+              activeTextColor="#ffffff"
+              singleOpen
+              userId={user?.id || 0}
+            />
           </VStack>
         </ScrollView>
       </Box>

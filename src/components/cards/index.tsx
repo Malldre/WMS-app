@@ -13,7 +13,7 @@ interface CardTasksProps {
 
 export default function CardTasks({ item, onPress }: CardTasksProps) {
   const router = useRouter();
-
+  console.log('CardTasks - item:', item);
   if (!item) {
     return null;
   }

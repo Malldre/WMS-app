@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, ActivityIndicator } from 'react-native';
 import { Box, VStack, HStack, Text, Icon, Divider, Button } from '@gluestack-ui/themed';
 import { ChevronRight } from 'lucide-react-native';
 import BindModal from '../bindModal';
 import ProductConferenceModal from '../productConferenceModal';
+import { tasksService } from '@/src/features/tasks/services/tasks.service';
+import { useAppToast } from '@/src/hooks/useAppToast';
 
 export type AccordionItem = {
   id: string;
   title: string;
   subtitle?: string;
   textContent?: string;
+  uuid: string;
 };
 
 export default function AccordionList({
@@ -17,15 +20,20 @@ export default function AccordionList({
   activeBg = '#0F0F1A',
   activeTextColor = '#ffffff',
   singleOpen = false,
+  userId,
 }: {
   items: AccordionItem[];
   activeBg?: string;
   activeTextColor?: string;
   singleOpen?: boolean;
+  userId: number;
 }) {
   const [openIds, setOpenIds] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [conferenceOpen, setConferenceOpen] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [selectedItemUuid, setSelectedItemUuid] = useState<string>('');
+  const { showToast } = useAppToast();
 
   const toggle = (id: string) => {
     setOpenIds((prev) => {
@@ -40,10 +48,38 @@ export default function AccordionList({
     });
   };
 
-  const onConfirmBind = () => {
-    setConfirmOpen(false);
-    setConferenceOpen(true);
-  }
+  const onConfirmBind = async () => {
+    if (!selectedItemUuid || !userId) {
+      showToast({
+        title: 'Erro',
+        description: 'Informações da tarefa ou usuário não disponíveis',
+        type: 'error',
+      });
+      setConfirmOpen(false);
+      return;
+    }
+
+    setIsAssigning(true);
+    try {
+      await tasksService.assignToUser(selectedItemUuid, userId);
+      showToast({
+        title: 'Sucesso',
+        description: 'Tarefa vinculada com sucesso!',
+        type: 'success',
+      });
+      setConfirmOpen(false);
+      setConferenceOpen(true);
+    } catch (error) {
+      showToast({
+        title: 'Erro',
+        description: 'Falha ao vincular a tarefa. Tente novamente.',
+        type: 'error',
+      });
+      setConfirmOpen(false);
+    } finally {
+      setIsAssigning(false);
+    }
+  };
 
   const onConfirmConference = () => {
     setConferenceOpen(false);
@@ -107,8 +143,23 @@ export default function AccordionList({
                   <Text mt="$2" color="$typography900">
                     {it.textContent}
                   </Text>
-                  <Button mt="$4" bgColor="#0F0F1A" px="$5" py="$3" borderRadius="$md" onPress={() => setConfirmOpen(!confirmOpen)}>
-                    <Text color="$white" fontWeight="$bold">Vincular Tarefa</Text>
+                  <Button
+                    mt="$4"
+                    bgColor="#0F0F1A"
+                    px="$5"
+                    py="$3"
+                    borderRadius="$md"
+                    onPress={() => {
+                      setSelectedItemUuid(it.uuid);
+                      setConfirmOpen(true);
+                    }}
+                    isDisabled={isAssigning}
+                  >
+                    {isAssigning ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text color="$white" fontWeight="$bold">Vincular Tarefa</Text>
+                    )}
                   </Button>
                 </VStack>
               </Box>
@@ -119,7 +170,7 @@ export default function AccordionList({
 
       <BindModal
         visible={confirmOpen}
-        title="Deseja realmente iniciar a CONFERÊNCIA?"
+        title="Deseja realmente iniciar a Conferência?"
         message="Você será vinculado a esse item!"
         onConfirm={onConfirmBind}
         onCancel={() => setConfirmOpen(false)}
