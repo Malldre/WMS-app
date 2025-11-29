@@ -3,10 +3,12 @@ import { Box, HStack, Icon } from '@gluestack-ui/themed';
 import { Menu } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import HeaderMenu from '../headerMenu';
+import { useSession } from '@/src/auth/useSession';
 
 
 export default function HeaderWithSettings() {
   const [openMenu, setOpenMenu] = useState(false);
+  const { user } = useSession();
 
   return (
   <>
@@ -22,7 +24,7 @@ export default function HeaderWithSettings() {
         <HeaderMenu
           isOpen={openMenu}
           onOpenChange={setOpenMenu}
-          employeeName="Marlon Palata Fanger Rodrigues"
+          employeeName={user?.name}
         />
       </Box>
       <Image

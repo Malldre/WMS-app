@@ -12,35 +12,27 @@ import {
 } from '@gluestack-ui/themed';
 import { ArrowLeft, User, Camera } from 'lucide-react-native';
 import HeaderWithSettings from '@/src/components/headers/headerWithSettings';
-
-type UserModel = {
-  name: string;
-  position: string;
-  registration: string;
-  email: string;
-  avatar?: any;
-  manager?: {
-    name: string;
-    position: string;
-    email: string;
-  };
-};
+import { useSession } from '@/src/auth/useSession';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { user, loading } = useSession();
 
-  const user: UserModel = {
-    name: 'Marlon Palata Fanger Rodrigues',
-    position: 'Analista de Logística Júnior',
-    registration: '123456789',
-    email: 'marlon@malldre.com',
-    avatar: undefined,
-    manager: {
-      name: 'Claudio Barbosa Neto',
-      position: 'Gerente Geral',
-      email: 'claudio@malldre.com',
-    },
-  };
+  if (loading) {
+    return (
+      <Box flex={1} bg="$background950" alignItems="center" justifyContent="center">
+        <Text>Carregando...</Text>
+      </Box>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Box flex={1} bg="$background950" alignItems="center" justifyContent="center">
+        <Text>Usuário não encontrado</Text>
+      </Box>
+    );
+  }
 
   return (
     <Box flex={1} bg="$background950">
@@ -81,19 +73,25 @@ export default function ProfileScreen() {
             <Divider />
 
             <VStack space="$3">
-              <Box>
-                <Text fontWeight="$bold" color="$typography900">Cargo:</Text>
-                <Text>{user.position}</Text>
-              </Box>
+              {user.position && (
+                <>
+                  <Box>
+                    <Text fontWeight="$bold" color="$typography900">Cargo:</Text>
+                    <Text>{user.position}</Text>
+                  </Box>
+                  <Divider />
+                </>
+              )}
 
-              <Divider />
-
-              <Box>
-                <Text fontWeight="$bold" color="$typography900">Matrícula:</Text>
-                <Text>{user.registration}</Text>
-              </Box>
-
-              <Divider />
+              {user.registration && (
+                <>
+                  <Box>
+                    <Text fontWeight="$bold" color="$typography900">Matrícula:</Text>
+                    <Text>{user.registration}</Text>
+                  </Box>
+                  <Divider />
+                </>
+              )}
 
               <Box>
                 <Text fontWeight="$bold" color="$typography900">E-mail:</Text>

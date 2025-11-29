@@ -49,4 +49,16 @@ export const tasksService = {
     const { data } = await apiService.put<Task>(`/tasks/${uuid}/assign`, { userId });
     return data;
   },
+
+  async completeConference(
+    taskId: string,
+    conferenceData: {
+      quantity: string;
+      code: string;
+      photoUri?: string;
+    }
+  ): Promise<Task> {
+    const { data } = await apiService.post<Task>(`/tasks/${taskId}/complete-conference`, conferenceData);
+    return data;
+  },
 };

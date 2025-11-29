@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { api } from '@/src/core/api';
 import { LoginDTO, loginService } from '@/src/auth/services/login.service';
-
-type User = { id: string; name: string };
+import { getUserProfile } from '@/src/auth/services/profile.service';
+import { UserProfile } from '@/src/types/user';
 
 export function useSession() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   const clearSession = useCallback(async () => {
@@ -22,12 +21,15 @@ export function useSession() {
         return;
       }
 
-      setLoading(false);
+      const profile = await getUserProfile();
+      setUser(profile);
     } catch (error) {
-      console.error('Erro ao carregar sessão:', error);
+      console.error('Erro ao carregar perfil do usuário:', error);
+      await clearSession();
+    } finally {
       setLoading(false);
     }
-  }, []);
+  }, [clearSession]);
 
   useEffect(() => {
     loadUser();
@@ -40,8 +42,12 @@ export function useSession() {
       throw new Error('Token de acesso não retornado');
     }
 
-    setUser(response.user);
-  }, []);  const logout = useCallback(async () => {
+    // Após o login, busca o perfil completo do usuário
+    const profile = await getUserProfile();
+    setUser(profile);
+  }, []);
+
+  const logout = useCallback(async () => {
     await clearSession();
   }, [clearSession]);
 

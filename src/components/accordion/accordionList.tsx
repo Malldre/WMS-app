@@ -81,8 +81,32 @@ export default function AccordionList({
     }
   };
 
-  const onConfirmConference = () => {
-    setConferenceOpen(false);
+  const onConfirmConference = async (conferenceData: { quantity: string; code: string; photoUri?: string }) => {
+    if (!selectedItemUuid) {
+      showToast({
+        title: 'Erro',
+        description: 'ID da tarefa não disponível',
+        type: 'error',
+      });
+      return;
+    }
+
+    try {
+      await tasksService.completeConference(selectedItemUuid, conferenceData);
+      showToast({
+        title: 'Sucesso',
+        description: 'Conferência finalizada com sucesso!',
+        type: 'success',
+      });
+      setConferenceOpen(false);
+      setSelectedItemUuid('');
+    } catch (error) {
+      showToast({
+        title: 'Erro',
+        description: 'Falha ao finalizar a conferência. Tente novamente.',
+        type: 'error',
+      });
+    }
   }
 
   return (

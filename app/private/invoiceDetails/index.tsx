@@ -15,13 +15,13 @@ import HeaderWithSettings from '@/src/components/headers/headerWithSettings';
 import AccordionList, { AccordionItem } from '@/src/components/accordion/accordionList';
 import { Task, TaskStatusColor, TaskTypeTranslate } from '@/src/types/tasks';
 import { invoiceService } from '@/src/services/invoice.service';
-import { useUser } from '@/src/auth/useUser';
+import { useSession } from '@/src/auth/useSession';
 
 export default function InvoiceDetails() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [productOpen, setProductOpen] = useState(true);
-  const { user } = useUser();
+  const { user } = useSession();
 
   const taskData: Task | null = useMemo(() => {
     if (params.taskData && typeof params.taskData === 'string') {
