@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Pressable, ActivityIndicator } from 'react-native';
 import { Box, VStack, HStack, Text, Icon, Divider, Button } from '@gluestack-ui/themed';
 import { ChevronRight } from 'lucide-react-native';
@@ -21,12 +21,14 @@ export default function AccordionList({
   activeTextColor = '#ffffff',
   singleOpen = false,
   userId,
+  taskId,
 }: {
   items: AccordionItem[];
   activeBg?: string;
   activeTextColor?: string;
   singleOpen?: boolean;
-  userId: number;
+  userId: string;
+  taskId: string;
 }) {
   const [openIds, setOpenIds] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -49,6 +51,7 @@ export default function AccordionList({
   };
 
   const onConfirmBind = async () => {
+    console.log('userId:', userId, selectedItemUuid);
     if (!selectedItemUuid || !userId) {
       showToast({
         title: 'Erro',
@@ -61,7 +64,7 @@ export default function AccordionList({
 
     setIsAssigning(true);
     try {
-      await tasksService.assignToUser(selectedItemUuid, userId);
+      await tasksService.assignToUser(taskId, userId);
       showToast({
         title: 'Sucesso',
         description: 'Tarefa vinculada com sucesso!',

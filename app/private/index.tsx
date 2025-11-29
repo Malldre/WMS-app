@@ -11,7 +11,7 @@ export default function Home() {
   const TabScreen = TAB_COMPONENTS[active];
 
   return (
-    <Box h='$full'>
+    <Box flex={1}>
       <HeaderWithSettings />
       <Box
         bgColor='$white'
@@ -34,7 +34,7 @@ export default function Home() {
         <TopTabs />
       </Box>
 
-      <Box bg='$coolGray300' h='$full' px='$6' py='$2'>
+      <Box bg='$coolGray300' flex={1} px='$6' py='$2'>
         <TabScreen />
       </Box>
     </Box>

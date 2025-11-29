@@ -35,13 +35,13 @@ export default function InvoiceDetails() {
     }
     return null;
   }, [params.taskData]);
-
+  console.log('Dados da tarefa:', taskData);
   const { data: invoiceItems = [], isLoading } = useQuery({
-    queryKey: ['invoice-items', taskData?.invoiceId],
-    queryFn: () => invoiceService.getInvoiceItems(taskData!.invoiceId!),
-    enabled: !!taskData?.invoiceId,
+    queryKey: ['invoice-items', '9924c1d6-89b5-4088-b628-3ae34511708a'],
+    queryFn: () => invoiceService.getInvoiceItems('9924c1d6-89b5-4088-b628-3ae34511708a'),
+    enabled: !!taskData?.uuid,
   });
-  console.log('Itens da nota fiscal:', invoiceItems);
+  console.log('Itens da nota fiscal:', invoiceItems, taskData);
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     try {
@@ -63,9 +63,9 @@ export default function InvoiceDetails() {
   };
 
   const accordionItems: AccordionItem[] = invoiceItems
-    .filter((item) => item && item.materialId)
+    .filter((item) => item && item.uuid)
     .map((item) => ({
-      id: item.materialId.toString(),
+      id: item.uuid,
       title: `${item.materialId} - ${item.materialName || 'N/A'}`,
       subtitle: item.materialDescription,
       textContent: `Quantidade: ${item.quantity || '0'} | Preço unitário: R$ ${parseFloat(item.unitValue || '0').toFixed(2)} | Total: R$ ${parseFloat(item.totalValue || '0').toFixed(2)}`,
@@ -166,7 +166,8 @@ export default function InvoiceDetails() {
               items={accordionItems}
               activeTextColor="#ffffff"
               singleOpen
-              userId={user?.id || 0}
+              userId={user?.uuid || ''}
+              taskId={taskData?.uuid || ''}
             />
           </VStack>
         </ScrollView>

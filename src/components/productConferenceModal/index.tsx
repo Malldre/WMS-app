@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Modal, TouchableOpacity } from 'react-native';
+import { Modal, TouchableOpacity, StyleSheet, View, Text as RNText } from 'react-native';
 import {
   Box, VStack, HStack, Text, Input, InputField, Icon, Button,
 } from '@gluestack-ui/themed';
 import { Camera, QrCode } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 
 export type Product = {
   code: string;
@@ -22,8 +24,6 @@ type ProductConferenceModalProps = {
   product?: Product | null;
   onCancel: () => void;
   onSubmit: (data: ProductConferenceData) => void;
-  onPickPhoto?: () => Promise<string | undefined>;
-  onScanQr?: () => void;
 };
 
 export default function ProductConferenceModal({
@@ -31,19 +31,31 @@ export default function ProductConferenceModal({
   product,
   onCancel,
   onSubmit,
-  onPickPhoto,
-  onScanQr,
 }: ProductConferenceModalProps) {
   const [quantity, setQuantity] = useState<string>('');
   const [code, setCode] = useState<string>(product?.code ?? '');
   const [photoUri, setPhotoUri] = useState<string | undefined>(undefined);
+  const [showScanner, setShowScanner] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
 
   const handlePickPhoto = async () => {
-    if (!onPickPhoto) return;
+    // Solicitar permissão da câmera
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
-    const uri = await onPickPhoto();
-    if (uri) {
-      setPhotoUri(uri);
+    if (status !== 'granted') {
+      alert('Desculpe, precisamos de permissão para acessar a câmera!');
+      return;
+    }
+
+    // Abrir a câmera
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setPhotoUri(result.assets[0].uri);
     }
   };
 
@@ -51,17 +63,34 @@ export default function ProductConferenceModal({
     onSubmit({ quantity, code, photoUri });
   };
 
-  const handleScanQr = () => {
-    onScanQr?.();
+  const handleScanQr = async () => {
+    if (!permission) {
+      return;
+    }
+
+    if (!permission.granted) {
+      const { granted } = await requestPermission();
+
+      if (!granted) {
+        alert('Desculpe, precisamos de permissão para acessar a câmera!');
+        return;
+      }
+    }
+
+    setShowScanner(true);
+  };  const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
+    setShowScanner(false);
+    setCode(data);
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onCancel}
-    >
+    <>
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={onCancel}
+      >
       <Box
         flex={1}
         bgColor="rgba(0,0,0,0.5)"
@@ -113,7 +142,47 @@ export default function ProductConferenceModal({
           </VStack>
         </Box>
       </Box>
-    </Modal>
+      </Modal>
+
+      <Modal
+        visible={showScanner}
+        animationType="slide"
+        onRequestClose={() => setShowScanner(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'black' }}>
+          <CameraView
+            style={StyleSheet.absoluteFillObject}
+            barcodeScannerSettings={{
+              barcodeTypes: ['qr', 'ean13', 'ean8', 'code128', 'code39'],
+            }}
+            onBarcodeScanned={handleBarCodeScanned}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 40,
+              left: 0,
+              right: 0,
+              alignItems: 'center',
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => setShowScanner(false)}
+              style={{
+                backgroundColor: 'white',
+                paddingHorizontal: 24,
+                paddingVertical: 12,
+                borderRadius: 8,
+              }}
+            >
+              <RNText style={{ color: 'black', fontWeight: 'bold' }}>
+                Cancelar
+              </RNText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -144,7 +213,9 @@ function ProductInfo({ label, value }: { label: string; value?: string }) {
       <Text fontWeight="$bold" fontSize={14} mb="$1">
         {label}
       </Text>
-      <Text fontSize={14}>{value}</Text>
+      <Text fontSize={14} color={value ? "$black" : "$coolGray400"}>
+        {value || 'N/A'}
+      </Text>
     </Box>
   );
 }

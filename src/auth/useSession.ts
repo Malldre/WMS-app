@@ -42,8 +42,8 @@ export function useSession() {
       throw new Error('Token de acesso não retornado');
     }
 
-    // Após o login, busca o perfil completo do usuário
     const profile = await getUserProfile();
+    console.log('Perfil do usuário após login:', profile);
     setUser(profile);
   }, []);
 

@@ -15,7 +15,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.seuprojeto.wmsmobile"
+      "bundleIdentifier": "com.seuprojeto.wmsmobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Este aplicativo precisa de acesso à câmera para tirar fotos dos itens e escanear códigos QR.",
+        "NSPhotoLibraryUsageDescription": "Este aplicativo precisa de acesso à galeria de fotos."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,14 +28,31 @@
       },
       "package": "com.seuprojeto.wmsmobile",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-secure-store",
-      "expo-barcode-scanner",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Este aplicativo precisa de acesso à câmera para tirar fotos e escanear códigos."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Este aplicativo precisa de acesso à galeria de fotos.",
+          "cameraPermission": "Este aplicativo precisa de acesso à câmera para tirar fotos."
+        }
+      ],
       "expo-router"
     ],
     "assetBundlePatterns": ["**/*"],
