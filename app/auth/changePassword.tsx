@@ -10,9 +10,12 @@ import {
 import { Eye, EyeOff } from 'lucide-react-native';
 import HeaderUniqueIcon from '@/src/components/headers/headerUniqueIcon';
 import { Dimensions } from 'react-native';
+import { passwordService } from '@/src/auth/services/password.service';
+import { useAppToast } from '@/src/hooks/useAppToast';
 const { height } = Dimensions.get('window');
 
 const schema = z.object({
+  currentPassword: z.string().min(4, 'Senha muito curta'),
   password: z.string().min(4, 'Senha muito curta'),
   confirm: z.string().min(4, 'Confirme a senha'),
 }).refine((data) => data.password === data.confirm, {
@@ -24,17 +27,40 @@ type Form = z.infer<typeof schema>;
 
 export default function ChangePassword() {
   const router = useRouter();
+  const { showToast } = useAppToast();
   const [isSend, setSend] = useState(false);
+  const [showCurrentPwd, setShowCurrentPwd] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const {
     handleSubmit, setValue, formState: { errors, isSubmitting },
-  } = useForm<Form>({ resolver: zodResolver(schema), defaultValues: { password: '', confirm: '' } });
+  } = useForm<Form>({ resolver: zodResolver(schema), defaultValues: { currentPassword: '', password: '', confirm: '' } });
 
   const onSubmit = async (data: Form) => {
-    setSend(true);
-    router.replace('/auth/login');
+    try {
+      await passwordService.changePassword({
+        currentPassword: data.currentPassword,
+        newPassword: data.password,
+        confirmPassword: data.confirm,
+      });
+
+      showToast({
+        type: 'success',
+        title: 'Senha alterada',
+        description: 'Sua senha foi alterada com sucesso',
+      });
+
+      setSend(true);
+      setTimeout(() => router.replace('/auth/login'), 2000);
+    } catch (error: any) {
+      console.error('❌ Erro ao alterar senha:', error);
+      showToast({
+        type: 'error',
+        title: 'Erro ao alterar senha',
+        description: error.message || 'Verifique sua senha atual e tente novamente',
+      });
+    }
   };
 
   if (isSend) {
@@ -66,6 +92,28 @@ export default function ChangePassword() {
         borderTopRightRadius={16}
       >
         <Box mt="$2">
+          <Text fontWeight="$bold" mb="$2">Senha atual</Text>
+
+          <HStack alignItems="center" gap="$2">
+            <Input w="$80" variant="outline" size="md" borderColor='#141414'>
+              <InputField
+                placeholder="Digite sua senha atual"
+                secureTextEntry={!showCurrentPwd}
+                onChangeText={(t) => setValue('currentPassword', t, { shouldValidate: true })}
+                autoCapitalize="none"
+                returnKeyType="next"
+              />
+            </Input>
+
+            <Pressable onPress={() => setShowCurrentPwd((s) => !s)} accessibilityLabel={showCurrentPwd ? "Ocultar senha" : "Mostrar senha"}>
+              <Icon as={showCurrentPwd ? EyeOff : Eye} />
+            </Pressable>
+          </HStack>
+
+          {errors.currentPassword && <Text color="$danger600" mt="$2">{errors.currentPassword.message}</Text>}
+        </Box>
+
+        <Box>
           <Text fontWeight="$bold" mb="$2">Nova senha</Text>
 
           <HStack alignItems="center" gap="$2">

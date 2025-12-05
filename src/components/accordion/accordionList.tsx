@@ -34,7 +34,7 @@ export default function AccordionList({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [conferenceOpen, setConferenceOpen] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
-  const [selectedItemUuid, setSelectedItemUuid] = useState<string>('');
+  const [selectedItem, setSelectedItem] = useState<AccordionItem | null>(null);
   const { showToast } = useAppToast();
 
   const toggle = (id: string) => {
@@ -51,8 +51,7 @@ export default function AccordionList({
   };
 
   const onConfirmBind = async () => {
-    console.log('userId:', userId, selectedItemUuid);
-    if (!selectedItemUuid || !userId) {
+    if (!selectedItem || !userId) {
       showToast({
         title: 'Erro',
         description: 'Informações da tarefa ou usuário não disponíveis',
@@ -64,7 +63,7 @@ export default function AccordionList({
 
     setIsAssigning(true);
     try {
-      await tasksService.assignToUser(taskId, userId);
+      // await tasksService.assignToUser(taskId, userId);
       showToast({
         title: 'Sucesso',
         description: 'Tarefa vinculada com sucesso!',
@@ -85,7 +84,7 @@ export default function AccordionList({
   };
 
   const onConfirmConference = async (conferenceData: { quantity: string; code: string; photoUri?: string }) => {
-    if (!selectedItemUuid) {
+    if (!selectedItem) {
       showToast({
         title: 'Erro',
         description: 'ID da tarefa não disponível',
@@ -95,14 +94,14 @@ export default function AccordionList({
     }
 
     try {
-      await tasksService.completeConference(selectedItemUuid, conferenceData);
+      await tasksService.completeConference(selectedItem.uuid, conferenceData);
       showToast({
         title: 'Sucesso',
         description: 'Conferência finalizada com sucesso!',
         type: 'success',
       });
       setConferenceOpen(false);
-      setSelectedItemUuid('');
+      setSelectedItem(null);
     } catch (error) {
       showToast({
         title: 'Erro',
@@ -177,7 +176,7 @@ export default function AccordionList({
                     py="$3"
                     borderRadius="$md"
                     onPress={() => {
-                      setSelectedItemUuid(it.uuid);
+                      setSelectedItem(it);
                       setConfirmOpen(true);
                     }}
                     isDisabled={isAssigning}
@@ -209,6 +208,7 @@ export default function AccordionList({
         visible={conferenceOpen}
         onCancel={() => setConferenceOpen(false)}
         onSubmit={onConfirmConference}
+        product={selectedItem}
       />
     </VStack>
   );

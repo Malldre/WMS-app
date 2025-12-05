@@ -13,7 +13,6 @@ interface CardTasksProps {
 
 export default function CardTasks({ item, onPress }: CardTasksProps) {
   const router = useRouter();
-  console.log('CardTasks - item:', item);
   if (!item) {
     return null;
   }
@@ -39,7 +38,7 @@ export default function CardTasks({ item, onPress }: CardTasksProps) {
             <Box
               alignItems='center'
               justifyContent='center'
-              bg={TaskStatusColor[item.status]}
+              bg={TaskStatusColor[item.taskType]}
               w='$32'
               h='$8'
               borderTopLeftRadius={14}

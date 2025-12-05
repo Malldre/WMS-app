@@ -1,5 +1,5 @@
-import React from 'react';
-import { ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, Linking } from 'react-native';
 import {
   Box,
   VStack,
@@ -10,9 +10,13 @@ import {
   ModalContent,
   Pressable,
   Icon,
+  Spinner,
 } from '@gluestack-ui/themed';
-import { X } from 'lucide-react-native';
+import { X, ChevronRight, FileText } from 'lucide-react-native';
 import { Task, TaskStatusColor, TaskTypeTranslate } from '@/src/types/tasks';
+import { invoiceService } from '@/src/services/invoice.service';
+import { InvoiceItem, ConferenceData } from '@/src/types/invoice';
+import { useQuery } from '@tanstack/react-query';
 
 interface ClosedTaskModalProps {
   isOpen: boolean;
@@ -22,6 +26,26 @@ interface ClosedTaskModalProps {
 
 export default function ClosedTaskModal({ isOpen, onClose, task }: ClosedTaskModalProps) {
   if (!task) return null;
+
+  const [openItemIds, setOpenItemIds] = useState<Set<string>>(new Set());
+
+  const { data: invoiceItems = [], isLoading: loadingItems } = useQuery({
+    queryKey: ['invoice-items', task?.invoiceId],
+    queryFn: () => invoiceService.getInvoiceItems(task!.invoiceId!),
+    enabled: !!task?.invoiceId && isOpen,
+  });
+
+  const toggleItem = (uuid: string) => {
+    setOpenItemIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(uuid)) {
+        next.delete(uuid);
+      } else {
+        next.add(uuid);
+      }
+      return next;
+    });
+  };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -53,7 +77,7 @@ export default function ClosedTaskModal({ isOpen, onClose, task }: ClosedTaskMod
               <Text size="xl" fontWeight="$bold" color="$white">
                 Nota: {task.invoiceId || task.title || 'N/A'}
               </Text>
-              <Pressable onPress={onClose} accessibilityLabel="Fechar">
+              <Pressable ml="-$5" onPress={onClose} accessibilityLabel="Fechar">
                 <Icon as={X} size="xl" color="$white" />
               </Pressable>
             </HStack>
@@ -122,10 +146,150 @@ export default function ClosedTaskModal({ isOpen, onClose, task }: ClosedTaskMod
                 </Text>
               </Box>
 
+              {/* Lista de itens com anexos */}
+              {loadingItems ? (
+                <Box py="$4" alignItems="center">
+                  <Spinner size="small" color="#0F0F1A" />
+                  <Text size="sm" color="#0F0F1A" mt="$2">
+                    Carregando itens...
+                  </Text>
+                </Box>
+              ) : invoiceItems.length > 0 ? (
+                <Box mt="$4">
+                  <Text size="sm" fontWeight="$bold" color="#0F0F1A" mb="$3">
+                    Itens da Nota:
+                  </Text>
+                  <VStack space="sm">
+                    {invoiceItems.map((item) => (
+                      <ItemAccordion
+                        key={item.uuid}
+                        item={item}
+                        isOpen={openItemIds.has(item.uuid)}
+                        onToggle={() => toggleItem(item.uuid)}
+                      />
+                    ))}
+                  </VStack>
+                </Box>
+              ) : null}
+
             </VStack>
           </ScrollView>
         </Box>
       </ModalContent>
     </Modal>
+  );
+}
+
+function ItemAccordion({
+  item,
+  isOpen,
+  onToggle,
+}: {
+  item: InvoiceItem;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  const { data: conferenceData, isLoading } = useQuery({
+    queryKey: ['conference', item.uuid],
+    queryFn: () => invoiceService.getConferenceData(item.uuid),
+    enabled: isOpen,
+  });
+
+  const handleAttachmentPress = (url: string) => {
+    Linking.openURL(url).catch((err) => {
+      console.error('Erro ao abrir anexo:', err);
+      alert('Não foi possível abrir o anexo');
+    });
+  };
+
+  return (
+    <Box
+      borderRadius="$lg"
+      borderWidth={1}
+      borderColor="$coolGray300"
+      overflow="hidden"
+    >
+      <Pressable onPress={onToggle}>
+        <HStack
+          alignItems="center"
+          justifyContent="space-between"
+          px="$3"
+          py="$3"
+          bg={isOpen ? '#0F0F1A' : '$white'}
+        >
+          <Box flex={1}>
+            <Text
+              fontWeight="$semibold"
+              fontSize={13}
+              color={isOpen ? '$white' : '#0F0F1A'}
+            >
+              {item.materialName}
+            </Text>
+            {item.materialDescription && (
+              <Text
+                fontSize={11}
+                color={isOpen ? '$coolGray300' : '$coolGray600'}
+                mt="$1"
+              >
+                {item.materialDescription}
+              </Text>
+            )}
+          </Box>
+          <Icon
+            as={ChevronRight}
+            size="md"
+            color={isOpen ? '$white' : '#0F0F1A'}
+            style={{ transform: [{ rotate: isOpen ? '90deg' : '0deg' }] }}
+          />
+        </HStack>
+      </Pressable>
+
+      {isOpen && (
+        <Box px="$3" pb="$3" pt="$2" bg="$coolGray50">
+          <Text fontSize={12} fontWeight="$bold" color="#0F0F1A" mb="$2">
+            Anexos do item: {item.materialName}
+          </Text>
+
+          {isLoading ? (
+            <Box py="$3" alignItems="center">
+              <Spinner size="small" color="#0F0F1A" />
+            </Box>
+          ) : conferenceData?.attachments && conferenceData.attachments.length > 0 ? (
+            <VStack space="xs">
+              {conferenceData.attachments.map((attachment) => (
+                <Pressable
+                  key={attachment.id}
+                  onPress={() => handleAttachmentPress(attachment.fileUrl)}
+                >
+                  <HStack
+                    alignItems="center"
+                    space="sm"
+                    p="$2"
+                    bg="$white"
+                    borderRadius="$md"
+                    borderWidth={1}
+                    borderColor="$coolGray200"
+                  >
+                    <Icon as={FileText} size="sm" color="#0F0F1A" />
+                    <VStack flex={1}>
+                      <Text fontSize={12} color="#0F0F1A" numberOfLines={1}>
+                        {attachment.fileName}
+                      </Text>
+                      <Text fontSize={10} color="$coolGray600">
+                        {new Date(attachment.uploadedAt).toLocaleDateString('pt-BR')}
+                      </Text>
+                    </VStack>
+                  </HStack>
+                </Pressable>
+              ))}
+            </VStack>
+          ) : (
+            <Text fontSize={11} color="$coolGray600" textAlign="center" py="$2">
+              Nenhum anexo encontrado
+            </Text>
+          )}
+        </Box>
+      )}
+    </Box>
   );
 }

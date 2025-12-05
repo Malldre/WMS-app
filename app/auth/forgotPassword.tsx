@@ -7,6 +7,8 @@ import {
 } from '@gluestack-ui/themed';
 import HeaderUniqueIcon from '@/src/components/headers/headerUniqueIcon';
 import { useState } from 'react';
+import { passwordService } from '@/src/auth/services/password.service';
+import { useAppToast } from '@/src/hooks/useAppToast';
 
 const schema = z.object({
   email: z.string({ required_error: 'Informe o e-mail' }).email('E-mail inválido'),
@@ -16,6 +18,7 @@ type Form = z.infer<typeof schema>;
 
 export default function ForgotPassword() {
   const router = useRouter();
+  const { showToast } = useAppToast();
   const [isSend, setSend] = useState(false);
 
   const {
@@ -23,8 +26,23 @@ export default function ForgotPassword() {
   } = useForm<Form>({ resolver: zodResolver(schema) });
 
   const onSubmit = async (data: Form) => {
-    setSend(true)
-    // await login({ email: data.email.trim(), password: data.password });
+    try {
+      await passwordService.requestPasswordReset(data.email.trim());
+
+      showToast({
+        type: 'success',
+        title: 'E-mail enviado',
+        description: 'Verifique sua caixa de entrada',
+      });
+
+      setSend(true);
+    } catch (error: any) {
+      showToast({
+        type: 'error',
+        title: 'Erro ao enviar e-mail',
+        description: error.message || 'Tente novamente mais tarde',
+      });
+    }
   };
 
   return (

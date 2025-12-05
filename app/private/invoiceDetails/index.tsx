@@ -35,13 +35,13 @@ export default function InvoiceDetails() {
     }
     return null;
   }, [params.taskData]);
-  console.log('Dados da tarefa:', taskData);
+
   const { data: invoiceItems = [], isLoading } = useQuery({
-    queryKey: ['invoice-items', '9924c1d6-89b5-4088-b628-3ae34511708a'],
-    queryFn: () => invoiceService.getInvoiceItems('9924c1d6-89b5-4088-b628-3ae34511708a'),
-    enabled: !!taskData?.uuid,
+    queryKey: ['invoice-items', '1ab81338-567a-4af8-aee4-59b02a22abf9'],
+    queryFn: () => invoiceService.getInvoiceItems('1ab81338-567a-4af8-aee4-59b02a22abf9'),
+    enabled: true,
   });
-  console.log('Itens da nota fiscal:', invoiceItems, taskData);
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     try {
@@ -102,7 +102,7 @@ export default function InvoiceDetails() {
           <VStack space="md" mt="$3" px="$2" pb="$8">
             <Box alignItems="flex-start">
               <Box
-                bg={taskData ? TaskStatusColor[taskData.status] : "$success300"}
+                bg={taskData ? TaskStatusColor[taskData.taskType] : "$success300"}
                 px="$3"
                 py="$1"
                 borderRadius="$lg"

@@ -33,12 +33,11 @@ const ALL = [
 const STATUS_OPTIONS = [
   { value: TaskTypeEnum.CONFERENCE, label: TaskTypeTranslate[TaskTypeEnum.CONFERENCE] },
   { value: TaskTypeEnum.DEMOBILIZATION, label: TaskTypeTranslate[TaskTypeEnum.DEMOBILIZATION] },
-  { value: TaskTypeEnum.STORAGE, label: TaskTypeTranslate[TaskTypeEnum.STORAGE] },
 ];
 
 const rightChecboxs: Array<{ value: string, label: string }> = [
   { value: TaskTypeEnum.SEPARATION, label: TaskTypeTranslate[TaskTypeEnum.SEPARATION] },
-  { value: TaskTypeEnum.DEMOBILIZATION, label: TaskTypeTranslate[TaskTypeEnum.DEMOBILIZATION] },
+  { value: TaskTypeEnum.STORAGE, label: TaskTypeTranslate[TaskTypeEnum.STORAGE] },
 ]
 
 export function FiltersSheet({
@@ -84,8 +83,9 @@ export function FiltersSheet({
         <HStack space="md" mb="$4">
           <VStack flex={1} space="sm">
             <CheckboxGroup
-            value={localSelection}
-            onChange={(values) => setLocalSelection(values as TaskTypeEnum[])}
+              value={localSelection}
+              onChange={(values) => setLocalSelection(values as TaskTypeEnum[])}
+              gap='$1'
             >
             {STATUS_OPTIONS.map((option) => (
                 <CheckBoxComponent
@@ -105,6 +105,7 @@ export function FiltersSheet({
             >
               {rightChecboxs.map((c) =>
                 <CheckBoxComponent
+                  key={c.value}
                   value={c.value}
                   label={c.label}
                 />

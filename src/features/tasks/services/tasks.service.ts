@@ -5,8 +5,7 @@ export const tasksService = {
   async getOpenTasks(filters?: TasksFilters): Promise<Task[]> {
     const { data } = await apiService.get<Task[]>('/tasks/open', {
       params: {
-        status: filters?.status?.join(','),
-        search: filters?.search,
+        taskType: filters?.taskType?.join(','),
       },
     });
     return data;
@@ -15,8 +14,7 @@ export const tasksService = {
   async getMyTasks(filters?: TasksFilters): Promise<Task[]> {
     const { data } = await apiService.get<Task[]>('/tasks/my-tasks', {
       params: {
-        status: filters?.status?.join(','),
-        search: filters?.search,
+        taskType: filters?.taskType?.join(','),
       },
     });
     return data;
@@ -24,9 +22,7 @@ export const tasksService = {
 
   async getClosedTasks(filters?: TasksFilters): Promise<Task[]> {
     const { data } = await apiService.get<Task[]>('/tasks/closed', {
-      params: {
-        search: filters?.search,
-      },
+      params: {},
     });
     return data;
   },

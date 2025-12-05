@@ -5,29 +5,29 @@ import { Funnel, Search } from 'lucide-react-native';
 import { FiltersSheet } from '@/src/features/tasks/components/FiltersSheet';
 import { TaskTypeEnum, TasksFilters } from '@/src/types/tasks';
 
-type FilterByStatusAndNameProps = {
+type FilterByTaskTypeAndNameProps = {
   isEnded?: boolean;
   onFilterChange?: (filters: TasksFilters) => void;
 };
 
-export default function FilterByStatusAndName({
+export default function FilterByTaskTypeAndName({
   isEnded = false,
   onFilterChange,
-}: FilterByStatusAndNameProps) {
+}: FilterByTaskTypeAndNameProps) {
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<TaskTypeEnum[]>([]);
+  const [selectedTaskType, setSelectedTaskType] = useState<TaskTypeEnum[]>([]);
   const [searchText, setSearchText] = useState('');
 
-  const handleApplyFilters = useCallback((status: TaskTypeEnum[]) => {
-    setSelectedStatus(status);
+  const handleApplyFilters = useCallback((taskType: TaskTypeEnum[]) => {
+    setSelectedTaskType(taskType);
     onFilterChange?.({
-      status: status.length > 0 ? status : undefined,
+      taskType: taskType.length > 0 ? taskType : undefined,
       search: searchText || undefined,
     });
   }, [searchText, onFilterChange]);
 
   const handleClearFilters = useCallback(() => {
-    setSelectedStatus([]);
+    setSelectedTaskType([]);
     onFilterChange?.({
       search: searchText || undefined,
     });
@@ -38,13 +38,13 @@ export default function FilterByStatusAndName({
 
     const timer = setTimeout(() => {
       onFilterChange?.({
-        status: selectedStatus.length > 0 ? selectedStatus : undefined,
+        taskType: selectedTaskType.length > 0 ? selectedTaskType : undefined,
         search: text || undefined,
       });
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [selectedStatus, onFilterChange]);
+  }, [selectedTaskType, onFilterChange]);
 
   return (
     <HStack w="$full" alignItems="center" justifyContent="space-between">
@@ -76,7 +76,7 @@ export default function FilterByStatusAndName({
       <FiltersSheet
         isOpen={filtersOpen}
         onClose={() => setFiltersOpen(false)}
-        initial={selectedStatus}
+        initial={selectedTaskType}
         onApply={handleApplyFilters}
         onClear={handleClearFilters}
       />

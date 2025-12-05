@@ -35,14 +35,18 @@ export type Task = {
 
 export type TasksFilters = {
   search?: string;
-  status?: TaskStatusEnum[];
+  taskType?: TaskTypeEnum[];
 };
 
-export const TaskStatusColor: Record<TaskStatusEnum, string> = {
-  [TaskStatusEnum.IN_PROGRESS]: '$yellow500',
-  [TaskStatusEnum.COMPLETED]: '$green500',
-  [TaskStatusEnum.PENDING]: '$orange500',
-
+export const TaskStatusColor: Record<TaskTypeEnum, string> = {
+  [TaskTypeEnum.CONFERENCE]: '$blue600',
+  [TaskTypeEnum.DEMOBILIZATION]: '$orange600',
+  [TaskTypeEnum.STORAGE]: '$green600',
+  [TaskTypeEnum.SEPARATION]: '$purple600',
+  [TaskTypeEnum.STOCK]: '$teal600',
+  [TaskTypeEnum.PENDING]: '$yellow600',
+  [TaskTypeEnum.INVENTORY]: '$gray600',
+  [TaskTypeEnum.PICKING]: '$pink600',
 };
 
 export const TaskTypeTranslate: Record<TaskTypeEnum, string> = {

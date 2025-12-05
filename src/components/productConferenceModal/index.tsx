@@ -37,9 +37,8 @@ export default function ProductConferenceModal({
   const [photoUri, setPhotoUri] = useState<string | undefined>(undefined);
   const [showScanner, setShowScanner] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
-
+  console.log('ProductConferenceModal rendered with product:', product);
   const handlePickPhoto = async () => {
-    // Solicitar permissão da câmera
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
     if (status !== 'granted') {
@@ -47,7 +46,6 @@ export default function ProductConferenceModal({
       return;
     }
 
-    // Abrir a câmera
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [4, 3],
@@ -115,7 +113,7 @@ export default function ProductConferenceModal({
             >
               <VStack space="md">
                 <ProductInfo label="Especificação do item:" value={product?.spec} />
-                <ProductInfo label="Descrição:" value={product?.description} />
+                <ProductInfo label="Descrição:" value={product?.subtitle} />
 
                 <QuantityInput
                   value={quantity}
